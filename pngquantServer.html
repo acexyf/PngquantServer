@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .none{
+            display: none;
+        }
+        .outImg{
+            display: block;
+        }
+        #drag{
+            width: 90%;
+            height: 300px;
+            border: 1px  dashed #333;
+            border-radius: 5px;
+            margin: auto;
+            cursor: pointer;
+            text-align: center;
+            line-height: 300px;
+        }
+    </style>
+</head>
+<body>
+
+
+    <div id="drag">
+        拖拽图片到此
+    </div>
+
+    <form action="" id="form" class="none">
+        <input type="file" name="upload" id="upload" accept="image/png">
+    </form>
+
+    <button id="submit">压缩</button>
+
+    <a id="download" href="" name="" download>下载</a>
+
+    <img class="outImg" src="" alt="">
+
+    <script src="//js.40017.cn/cn/h/common/jquery-1.9.1.min.js"></script>
+    <script>
+    
+    $('#submit').on('click', function(){
+        var files = $('#upload')[0].files;
+        if(!!files.length){
+            let formData = new FormData($('#form')[0]);
+            ajaxSendImg(formData)
+        }
+    });
+
+
+    $('#drag').on('click',function(){
+        $('#upload').trigger('click')
+    });
+
+    $('#upload').on('change', function(){
+        var files = $('#upload')[0].files;
+        if(!!files.length){
+            let formData = new FormData($('#form')[0]);
+            ajaxSendImg(formData)
+        }
+    });
+
+    $('#drag').on({
+        dragleave: function(ev){
+            ev.preventDefault();
+        },
+        drop: function(ev){
+            ev.preventDefault();
+        },
+        dragenter: function(ev){
+            ev.preventDefault();
+        },
+        dragover: function(ev){
+            ev.preventDefault();
+        },
+    })
+
+    var dragBox = document.getElementById('drag');
+    dragBox.addEventListener('drop', function(ev){
+        ev.preventDefault();
+        var fileList = ev.dataTransfer.files; //获取文件对象
+        console.log(fileList)
+        //检测是否是拖拽文件到页面的操作
+		if(fileList.length == 0){
+			return false;
+        }
+        //检测文件是不是图片
+		if(fileList[0].type.indexOf('image') === -1){
+			alert("您拖的不是图片！");
+			return false;
+        }
+        var formData = new FormData();
+        formData.append('upload', fileList[0])
+        ajaxSendImg(formData);
+    });
+
+    function ajaxSendImg(formData){
+        $.ajax({
+            url: '/upload',
+            type: 'post',
+            processData:false,
+            contentType:false,
+            data: formData,
+            success: function(data){
+                console.log(data);
+                setTimeout(function(){
+
+                    var path = data.path;
+                    $('.outImg').attr('src',path);
+                    $('#download').attr('href',path).attr('download',data.filename);
+
+                },500)
+            }
+        })
+    }
+
+
+    // $('#download').on('click', function(){
+    //     var href = $(this).attr('href');
+    //     $.ajax({
+    //         url: '/download',
+    //         type: 'get',
+    //         data:{
+    //             path: ''
+    //         }
+    //     })
+    // });
+    
+    </script>
+</body>
+</html>
