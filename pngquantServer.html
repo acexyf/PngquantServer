@@ -6,11 +6,14 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <style>
+        .page{
+            width: 95%;
+            margin: 0 auto;
+        }
         .none{
             display: none;
         }
         #drag{
-            width: 90%;
             height: 300px;
             border: 1px  dashed #333;
             border-radius: 5px;
@@ -35,123 +38,207 @@
             text-align: center;
             text-decoration: none;
         }
+        #results{
+            width: 100%;
+        }
+        .clearfix:after{content:'.';display:block;clear:both;line-height:0;height:0;visibility:hidden}
+        .navs{
+            width: 180px;
+            margin: 0 auto;
+        }
+        .nav{
+            height: 30px;
+            line-height: 30px;
+            padding-left: 25px;
+            background: url(//file.40017.cn/baoxian/agbpc/modules/detail/img/radioBoxIcon-cc701ccdb8.png) 0 7px no-repeat;
+            margin-right: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            float: left;
+        }
+        .nav.active{
+            background-position: 0 -76px;
+        }
+        .tab{
+            display: none;
+        }
+        .tab.active{
+            display: block
+        }
     </style>
 </head>
 <body>
 
-
-    <div id="drag">
-        拖拽单张图片到此
-    </div>
-
-    <form action="" id="form" class="none">
-        <input type="file" name="upload" id="upload" accept="image/png" multiple>
-    </form>
+    <div class="page">
+        <form action="" id="form" class="none">
+            <input type="file" name="upload" id="upload" accept="image/png" multiple>
+        </form>
+        
+        <div id="drag">
+            拖拽单张图片到此
+        </div>
     
-    <div class="outImgs"></div>
+        <div class="navs clearfix">
+            <div class="nav active" data-type="compress">压缩</div>
+            <div class="nav" data-type="tobase">转base64</div>
+        </div>
+        <div class="tabs">
+            <div class="tab active">
+                <div class="outImgs">
+                        
+                </div>
+            </div>
+            <div class="tab">
+                <textarea name="" id="results" cols="30" rows="10"></textarea>
+            </div>
+        </div>
+
+    </div>
+    
+
+
 
     <script src="//js.40017.cn/cn/h/common/jquery-1.9.1.min.js"></script>
     <script>
     
 
+        $(function(){
 
-    $('#drag').on('click',function(){
-        $('#upload').trigger('click')
-    });
+            $('#drag').on('click',function(){
+                $('#upload').trigger('click')
+            });
 
-    $('#upload').on('change', function(){
-        var files = $('#upload')[0].files;
-        if(!!files.length){
+            $('#upload').on('change', function(){
+                var files = $('#upload')[0].files;
 
-            if(files.length > 4){
-                alert('不能超过四张图片');
-            } else {
-                let formData = new FormData();
-    
-                for(let i = 0;i<files.length;i++){
-                    formData.append('upload', files[i]);
+                var type = $('.nav.active').data('type');
+                if(type == 'compress'){
+                    if(!!files.length){
+                        if(files.length > 4){
+                            alert('不能超过四张图片');
+                        } else {
+                            let formData = new FormData();
+                
+                            for(let i = 0;i<files.length;i++){
+                                formData.append('upload', files[i]);
+                            }
+                            ajaxSendImg(formData)
+                        }
+                    }
+                } else if(type == 'tobase') {
+                    if(!!files.length){
+                        readImg(files[0])
+                    }
                 }
-    
-                ajaxSendImg(formData)
 
+            });
+
+            $('#drag').on({
+                dragleave: function(ev){
+                    ev.preventDefault();
+                },
+                drop: function(ev){
+                    ev.preventDefault();
+                },
+                dragenter: function(ev){
+                    ev.preventDefault();
+                },
+                dragover: function(ev){
+                    ev.preventDefault();
+                },
+            })
+
+            var dragBox = document.getElementById('drag');
+            dragBox.addEventListener('drop', function(ev){
+                ev.preventDefault();
+                var fileList = ev.dataTransfer.files; //获取文件对象
+                console.log(fileList)
+                //检测是否是拖拽文件到页面的操作
+                if(fileList.length == 0){
+                    return false;
+                }
+
+                var type = $('.nav.active').data('type');
+                if(type == 'compress'){
+                    //检测文件是不是图片
+                    if(fileList[0].type.indexOf('png') === -1){
+                        alert("您拖的不是png图片！");
+                        return false;
+                    }
+                    var formData = new FormData();
+                    formData.append('upload', fileList[0])
+                    ajaxSendImg(formData);
+
+                } else if(type == 'tobase') {
+
+                    if(fileList[0].type.indexOf('image') === -1){
+                        alert("您拖的不是图片！");
+                        return false;
+                    }
+                    readImg(fileList[0])
+                }
+
+            });
+
+            function readImg(imgFile){
+                if (!/\.(jpg|JPG|jpeg|JPEG|png|PNG)$/.test(imgFile.name)) {
+                    alert('图片格式错误');
+                    return false;
+                }
+                if (imgFile.size > 3 * 1024 * 1024) {
+                    alert('图片大小超过限制');
+                    return false;
+                }
+                var reader = new FileReader();
+                reader.readAsDataURL(imgFile);
+                reader.onload = function(event) {
+                    // console.log(event.target.result);
+                    $('#results').html(event.target.result)
+                };
             }
 
-        }
-    });
 
-    $('#drag').on({
-        dragleave: function(ev){
-            ev.preventDefault();
-        },
-        drop: function(ev){
-            ev.preventDefault();
-        },
-        dragenter: function(ev){
-            ev.preventDefault();
-        },
-        dragover: function(ev){
-            ev.preventDefault();
-        },
-    })
+            function ajaxSendImg(formData){
+                $.ajax({
+                    url: '/upload',
+                    type: 'post',
+                    processData:false,
+                    contentType:false,
+                    data: formData,
+                    success: function(data){
+                        console.log(data);
+                        setTimeout(function(){
+                            var fetchData= data.data,
+                                _html="";
+                            fetchData.map(function(elem){
+                                _html+=`<div class="outImg">
+                                            <img src="${elem.path}" alt="">
+                                            <a class="download" href="${elem.path}" name="${elem.originalName}" download="${elem.originalName}">下载</a>
+                                        </div>`
+                            });
 
-    var dragBox = document.getElementById('drag');
-    dragBox.addEventListener('drop', function(ev){
-        ev.preventDefault();
-        var fileList = ev.dataTransfer.files; //获取文件对象
-        console.log(fileList)
-        //检测是否是拖拽文件到页面的操作
-		if(fileList.length == 0){
-			return false;
-        }
-        //检测文件是不是图片
-		if(fileList[0].type.indexOf('png') === -1){
-			alert("您拖的不是png图片！");
-			return false;
-        }
-        var formData = new FormData();
-        formData.append('upload', fileList[0])
-        ajaxSendImg(formData);
-    });
+                            $('.outImgs').append(_html);
 
-    function ajaxSendImg(formData){
-        $.ajax({
-            url: '/upload',
-            type: 'post',
-            processData:false,
-            contentType:false,
-            data: formData,
-            success: function(data){
-                console.log(data);
-                setTimeout(function(){
-
-
-                    var fetchData= data.data,
-                        _html="";
-                    fetchData.map(function(elem){
-                        _html+=`<div class="outImg">
-                                    <img src="${elem.path}" alt="">
-                                    <a class="download" href="${elem.path}" name="${elem.originalName}" download="${elem.originalName}">下载</a>
-                                </div>`
-                    });
-
-                    $('.outImgs').append(_html);
-
-                },500)
+                        },500)
+                    }
+                })
             }
-        })
-    }
+
+            $('.nav').on('click',function(){
+               if($(this).hasClass('active')){
+                   return;
+               }
+
+               $(this).siblings('.nav').removeClass('active').end().addClass('active');
+
+               $('.tab').removeClass('active').eq($(this).index()).addClass('active')
+
+            });
 
 
-    // $('#download').on('click', function(){
-    //     var href = $(this).attr('href');
-    //     $.ajax({
-    //         url: '/download',
-    //         type: 'get',
-    //         data:{
-    //             path: ''
-    //         }
-    //     })
-    // });
+
+        });
+
     
     </script>
 </body>
