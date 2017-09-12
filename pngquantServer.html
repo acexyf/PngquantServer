@@ -9,9 +9,6 @@
         .none{
             display: none;
         }
-        .outImg{
-            display: block;
-        }
         #drag{
             width: 90%;
             height: 300px;
@@ -22,24 +19,36 @@
             text-align: center;
             line-height: 300px;
         }
+        .outImg{
+            width: 100px;
+            height: 121px;
+            float: left;
+            margin: 10px;
+        }
+        .outImg img{
+            display: block;
+            width: 100px;
+            max-height: 100px;
+        }
+        .download{
+            display: block;
+            text-align: center;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
 
 
     <div id="drag">
-        拖拽图片到此
+        拖拽单张图片到此
     </div>
 
     <form action="" id="form" class="none">
-        <input type="file" name="upload" id="upload" accept="image/png">
+        <input type="file" name="upload" id="upload" accept="image/png" multiple>
     </form>
-
-    <button id="submit">压缩</button>
-
-    <a id="download" href="" name="" download>下载</a>
-
-    <img class="outImg" src="" alt="">
+    
+    <div class="outImgs"></div>
 
     <script src="//js.40017.cn/cn/h/common/jquery-1.9.1.min.js"></script>
     <script>
@@ -60,7 +69,12 @@
     $('#upload').on('change', function(){
         var files = $('#upload')[0].files;
         if(!!files.length){
-            let formData = new FormData($('#form')[0]);
+            let formData = new FormData();
+
+            for(let i = 0;i<files.length;i++){
+                formData.append('upload', files[i]);
+            }
+
             ajaxSendImg(formData)
         }
     });
@@ -110,9 +124,17 @@
                 console.log(data);
                 setTimeout(function(){
 
-                    var path = data.path;
-                    $('.outImg').attr('src',path);
-                    $('#download').attr('href',path).attr('download',data.filename);
+
+                    var fetchData= data.data,
+                        _html="";
+                    fetchData.map(function(elem){
+                        _html+=`<div class="outImg">
+                                    <img src="${elem.path}" alt="">
+                                    <a class="download" href="${elem.path}" name="${elem.originalName}" download="${elem.originalName}">下载</a>
+                                </div>`
+                    });
+
+                    $('.outImgs').append(_html);
 
                 },500)
             }

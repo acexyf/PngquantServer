@@ -9,58 +9,68 @@ var ipaddress = getIPAdress();
 var schedule = require('node-schedule');
 
 
-var storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/')
-    },
-    filename: function (req, file, cb) {
-        var changedName = (new Date().getTime())+'-'+file.originalname;
-
-        req.changedName = changedName;
-        req.originalName = file.originalname;
-
-        console.log(req.originalName,req.changedName)
-
-        cb(null, changedName);
-
-        let tempIndex = req.originalName.lastIndexOf('.');
-        if(req.originalName.substr(tempIndex+1) == 'png'){
-            req.isPng = true;
-            exec('pngquant ./uploads/'+changedName);
-        } else {
-            req.isPng = false;
-        }
-
-    }
-})
-
 var upload = multer({
-    dest: 'uploads/',
-    storage: storage
+    limits: {
+        //在multipart表单中, 文件最大数量
+        files: 4,
+        //在multipart表单中, 文件最大长度 (字节单位)
+        fileSize: 1000*1000*5
+    },
+    storage: multer.diskStorage({
+        destination: function (req, file, cb) {
+            cb(null, 'uploads/')
+        },
+        filename: function (req, file, cb) {
+            //设置文件名
+
+            var timeStamp = new Date().getTime();
+
+            var changedName = timeStamp + '.png',
+                downloadName = timeStamp + '-fs8.png';
+            //保存的名字
+            file.changedName = changedName;
+            //下载的名字
+            file.downloadName = downloadName;
+
+            cb(null, changedName);
+
+            exec('pngquant ./uploads/'+changedName);
+
+        },
+        fileFilter: function(req, file, cb){
+            //过滤图片，非png不保存
+            if(file.mimetype == 'image/png'){
+                cb(null, true)
+            } else {
+                cb(null, false)
+            }
+    
+        }
+    })
 });
 
 app.use('/output',express.static(path.resolve(__dirname,'./uploads/')));
 
+app.post('/upload', upload.array('upload'), function(req,res){
 
-app.post('/upload', upload.single('upload'), function(req,res){
+    var fileData = [];
+    console.log(req.files)
 
-    var changedNameArr = req.changedName.split('.png');
+    req.files.map(function(elem){
+        var item = {
+            originalName: elem.originalname,
+            downloadName: elem.downloadName,
+            path: 'http://'+ipaddress+':'+port+'/output/'+elem.downloadName
+        }
+        fileData.push(item);
+    });
 
-    if(req.isPng){
-        res.json({
-            code: '0000',
-            filename:req.originalName,
-            msg: '',
-            path: 'http://'+ipaddress+':'+port+'/output/'+changedNameArr[0]+'-fs8.png'
-        })
-    } else {
-        res.json({
-            code: '0000',
-            filename:req.originalName,
-            msg: '文件非png格式',
-            path: ''
-        })
-    }
+    res.json({
+        code: '0000',
+        msg: '',
+        data: fileData
+    })
+
 });
 
 
