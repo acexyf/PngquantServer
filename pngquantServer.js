@@ -7,7 +7,7 @@ var multer = require('multer');
 var exec = require('child_process').exec;
 var ipaddress = getIPAdress();
 var schedule = require('node-schedule');
-
+var bodyParser = require('body-parser');
 
 var upload = multer({
     limits: {
@@ -51,10 +51,10 @@ var upload = multer({
 
 app.use('/output',express.static(path.resolve(__dirname,'./uploads/')));
 
+
 app.post('/upload', upload.array('upload'), function(req,res){
 
     var fileData = [];
-    console.log(req.files)
 
     req.files.map(function(elem){
         var item = {
@@ -73,10 +73,20 @@ app.post('/upload', upload.array('upload'), function(req,res){
 
 });
 
+app.post('/getBase',bodyParser.urlencoded({ extended: false }), function(req,res){
+    var filename = req.param('filename');
+    console.log(filename,'filename');
+    res.json({
+        code: '0000',
+        msg: '',
+        data: 'data'
+    })
+});
 
 app.get('/', function (req, res) {
     res.sendFile(path.resolve(__dirname, 'pngquantServer.html'));
 });
+
 
 
 let server = app.listen(port, function () {

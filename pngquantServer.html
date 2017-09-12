@@ -239,6 +239,18 @@
 
             $('.nav').eq(1).trigger('click');
 
+            $.ajax({
+                url: '/getBase',
+                type: 'post',
+                dataType: 'json',
+                data: {
+                    filename: 'ceshiceshifile'
+                },
+                success: function(data){
+                    console.log(data)
+                }
+            })
+
 
         });
 
