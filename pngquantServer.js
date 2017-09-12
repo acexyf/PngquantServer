@@ -19,7 +19,7 @@ var storage = multer.diskStorage({
         req.changedName = changedName;
         req.originalName = file.originalname;
 
-        console.log(req.originalName)
+        console.log(req.originalName,req.changedName)
 
         cb(null, changedName);
 
