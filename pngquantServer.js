@@ -49,9 +49,10 @@ var upload = multer({
     })
 });
 
+//静态资源下载
 app.use('/output',express.static(path.resolve(__dirname,'./uploads/')));
 
-
+//上传图片
 app.post('/upload', upload.array('upload'), function(req,res){
 
     var fileData = [];
@@ -73,20 +74,44 @@ app.post('/upload', upload.array('upload'), function(req,res){
 
 });
 
+//本地图片转base64
 app.post('/getBase',bodyParser.urlencoded({ extended: false }), function(req,res){
     var filename = req.param('filename');
     console.log(filename,'filename');
-    res.json({
-        code: '0000',
-        msg: '',
-        data: 'data'
-    })
+
+    if(!!filename){
+        fs.stat('./uploads/'+filename, function(err, stats){
+            if(err){
+                res.json({
+                    code: '1000',
+                    msg: '文件不存在',
+                    data: ''
+                });
+                return;
+            } else {
+    
+                var imgBuf = fs.readFileSync('./uploads/'+filename);
+    
+                res.json({
+                    code: '0000',
+                    msg: '',
+                    data: 'data:image/jpeg;base64,'+imgBuf.toString('base64')
+                })
+            }
+        });
+    } else {
+        res.json({
+            code: '2000',
+            msg: '文件名错误',
+            data: ''
+        });
+    }
+
 });
 
 app.get('/', function (req, res) {
     res.sendFile(path.resolve(__dirname, 'pngquantServer.html'));
 });
-
 
 
 let server = app.listen(port, function () {

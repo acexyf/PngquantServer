@@ -33,9 +33,13 @@
             width: 100px;
             max-height: 100px;
         }
-        .download{
-            display: block;
+        .opt{
             text-align: center;
+        }
+        .opt .download{
+            text-decoration: none;
+        }
+        .opt .getBase{
             text-decoration: none;
         }
         #results{
@@ -79,8 +83,8 @@
         </div>
     
         <div class="navs clearfix">
-            <div class="nav active" data-type="compress">压缩</div>
-            <div class="nav" data-type="tobase">转base64</div>
+            <div class="nav compress active" data-type="compress">压缩</div>
+            <div class="nav tobase" data-type="tobase">转base64</div>
         </div>
         <div class="tabs">
             <div class="tab active">
@@ -214,7 +218,10 @@
                             fetchData.map(function(elem){
                                 _html+=`<div class="outImg">
                                             <img src="${elem.path}" alt="">
-                                            <a class="download" href="${elem.path}" name="${elem.originalName}" download="${elem.originalName}">下载</a>
+                                            <div class="opt" data-downloadname="${elem.downloadName}">
+                                                <a class="download" href="${elem.path}" name="${elem.originalName}" download="${elem.originalName}">下载</a>
+                                                <a class="getBase" href="javascript:;">转base</a>
+                                            </div>
                                         </div>`
                             });
 
@@ -224,6 +231,27 @@
                     }
                 })
             }
+
+            $('.outImgs').on('click','.getBase', function(){
+                var downloadname = $(this).parents('.opt').data('downloadname');
+                console.log(downloadname,'downloadname')
+                $.ajax({
+                    url: '/getBase',
+                    type: 'post',
+                    dataType: 'json',
+                    data: {
+                        filename: downloadname
+                    },
+                    success: function(data){
+                        console.log(data);
+                        if(!!data && data.code == '0000'){
+                            $('#results').html(data.data)
+                            $('.nav.tobase').trigger('click');
+                        }
+                    }
+                })
+            });
+
 
             $('.nav').on('click',function(){
                if($(this).hasClass('active')){
@@ -237,19 +265,19 @@
             });
 
 
-            $('.nav').eq(1).trigger('click');
+            $('.nav.tobase').trigger('click');
 
-            $.ajax({
-                url: '/getBase',
-                type: 'post',
-                dataType: 'json',
-                data: {
-                    filename: 'ceshiceshifile'
-                },
-                success: function(data){
-                    console.log(data)
-                }
-            })
+            // $.ajax({
+            //     url: '/getBase',
+            //     type: 'post',
+            //     dataType: 'json',
+            //     data: {
+            //         filename: ''
+            //     },
+            //     success: function(data){
+            //         console.log(data)
+            //     }
+            // })
 
 
         });
