@@ -53,13 +53,6 @@
     <script src="//js.40017.cn/cn/h/common/jquery-1.9.1.min.js"></script>
     <script>
     
-    $('#submit').on('click', function(){
-        var files = $('#upload')[0].files;
-        if(!!files.length){
-            let formData = new FormData($('#form')[0]);
-            ajaxSendImg(formData)
-        }
-    });
 
 
     $('#drag').on('click',function(){
@@ -69,13 +62,20 @@
     $('#upload').on('change', function(){
         var files = $('#upload')[0].files;
         if(!!files.length){
-            let formData = new FormData();
 
-            for(let i = 0;i<files.length;i++){
-                formData.append('upload', files[i]);
+            if(files.length > 4){
+                alert('不能超过四张图片');
+            } else {
+                let formData = new FormData();
+    
+                for(let i = 0;i<files.length;i++){
+                    formData.append('upload', files[i]);
+                }
+    
+                ajaxSendImg(formData)
+
             }
 
-            ajaxSendImg(formData)
         }
     });
 
@@ -104,8 +104,8 @@
 			return false;
         }
         //检测文件是不是图片
-		if(fileList[0].type.indexOf('image') === -1){
-			alert("您拖的不是图片！");
+		if(fileList[0].type.indexOf('png') === -1){
+			alert("您拖的不是png图片！");
 			return false;
         }
         var formData = new FormData();
