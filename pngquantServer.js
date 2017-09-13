@@ -144,10 +144,25 @@ function getIPAdress() {
 
 //设置定时任务
 var rules = new schedule.RecurrenceRule();
-var hoursArr = [12,24];
-rules.hour = hoursArr;
+
+rules.hour = [];
+
+for(var i = 10;i<=23;i++){
+    rules.hour.push(i);
+}
+
 schedule.scheduleJob(rules, function(){
-    exec('cd ./uploads/ && rm -r *');
+    console.log('删除uploads下的图片')
+    fs.readdir(__dirname+'/uploads', function(err,files){
+        if(!!files && !!files.length){
+            files.map(function(file){
+                var status = fs.statSync(__dirname+'/uploads/'+file)
+                if(!status.isDirectory()){
+                    fs.unlinkSync(__dirname+'/uploads/'+file)
+                }
+            });
+        }
+    });
 });
 
 

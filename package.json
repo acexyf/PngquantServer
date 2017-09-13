@@ -5,7 +5,8 @@
   "main": "pngquantServer.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "supervisor pngquantServer"
+    "start": "supervisor pngquantServer",
+    "clean":"cd ./uploads/ && rm -r *"
   },
   "author": "",
   "license": "ISC",
