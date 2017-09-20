@@ -152,7 +152,8 @@ for(var i = 10;i<=23;i++){
 }
 
 schedule.scheduleJob(rules, function(){
-    console.log('删除uploads下的图片')
+    let nowDate = new Date();
+    console.log(`${nowDate.getFullYear()}/${nowDate.getMonth()+1}/${nowDate.getnowDate()} ${nowDate.getHours()}:${nowDate.getMinutes()}:${nowDate.getSeconds()} 删除uploads下的图片`)
     fs.readdir(__dirname+'/uploads', function(err,files){
         if(!!files && !!files.length){
             files.map(function(file){
