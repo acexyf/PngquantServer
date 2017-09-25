@@ -147,7 +147,7 @@ var rules = new schedule.RecurrenceRule();
 
 rules.hour = [];
 
-for(var i = 10;i<=23;i++){
+for(var i = 22;i<=23;i++){
     rules.hour.push(i);
 }
 
