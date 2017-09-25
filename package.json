@@ -6,12 +6,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "supervisor pngquantServer",
-    "clean":"cd ./uploads/ && rm -r *"
+    "clean": "cd ./uploads/ && rm -r *"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "body-parser": "^1.18.0",
+    "body-parser": "^1.18.1",
     "express": "^4.15.4",
     "multer": "^1.3.0",
     "node-schedule": "^1.2.4"
