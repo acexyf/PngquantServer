@@ -21,8 +21,11 @@ var upload = multer({
             cb(null, 'uploads/')
         },
         filename: function (req, file, cb) {
-            //设置文件名
+            console.log(req.param('range'),'range');
+            var range = req.param('range') || '100';
 
+
+            //设置文件名
             var timeStamp = new Date().getTime();
 
             var changedName = timeStamp + '.png',
@@ -34,7 +37,7 @@ var upload = multer({
 
             cb(null, changedName);
 
-            exec('pngquant ./uploads/'+changedName);
+            exec('pngquant ./uploads/'+changedName+' --quality='+range);
 
         },
         fileFilter: function(req, file, cb){
@@ -52,25 +55,40 @@ var upload = multer({
 //静态资源下载
 app.use('/output',express.static(path.resolve(__dirname,'./uploads/')));
 
+
+let arrayUpload = upload.array('upload');
 //上传图片
-app.post('/upload', upload.array('upload'), function(req,res){
+app.post('/upload', function(req,res){
+    
+    arrayUpload(req,res, function(err){
 
-    var fileData = [];
-
-    req.files.map(function(elem){
-        var item = {
-            originalName: elem.originalname,
-            downloadName: elem.downloadName,
-            path: 'http://'+ipaddress+':'+port+'/output/'+elem.downloadName
+        if(err){
+            res.json({
+                code: '1000',
+                msg: err.message,
+                data: []
+            })
+            return;
         }
-        fileData.push(item);
+
+        var fileData = [];
+    
+        req.files.map(function(elem){
+            var item = {
+                originalName: elem.originalname,
+                downloadName: elem.downloadName,
+                path: 'http://'+ipaddress+':'+port+'/output/'+elem.downloadName
+            }
+            fileData.push(item);
+        });
+    
+        res.json({
+            code: '0000',
+            msg: '',
+            data: fileData
+        })
     });
 
-    res.json({
-        code: '0000',
-        msg: '',
-        data: fileData
-    })
 
 });
 
