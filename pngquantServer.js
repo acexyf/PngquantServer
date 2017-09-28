@@ -176,7 +176,8 @@ for(var i = 22;i<=23;i++){
 
 schedule.scheduleJob(rules, function(){
     let nowDate = new Date();
-    console.log(`${nowDate.getFullYear()}/${nowDate.getMonth()+1}/${nowDate.getDate()} ${nowDate.getHours()}:${nowDate.getMinutes()}:${nowDate.getSeconds()} 删除uploads下的图片`)
+    // console.log(`${nowDate.getFullYear()}/${nowDate.getMonth()+1}/${nowDate.getDate()} ${nowDate.getHours()}:${nowDate.getMinutes()}:${nowDate.getSeconds()} 删除uploads下的图片`)
+    logObj.write(`${getNowTime()} 删除uploads下的图片`);
     fs.readdir(__dirname+'/uploads', function(err,files){
         if(!!files && !!files.length){
             files.map(function(file){
