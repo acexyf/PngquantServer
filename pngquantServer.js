@@ -8,6 +8,7 @@ var exec = require('child_process').exec;
 var ipaddress = getIPAdress();
 var schedule = require('node-schedule');
 var bodyParser = require('body-parser');
+var logObj = require('./logObj');
 
 var upload = multer({
     limits: {
@@ -21,9 +22,8 @@ var upload = multer({
             cb(null, 'uploads/')
         },
         filename: function (req, file, cb) {
-            console.log(req.param('range'),'range');
-            var range = req.param('range') || '100';
 
+            var range = req.param('range') || '100';
 
             //设置文件名
             var timeStamp = new Date().getTime();
@@ -39,6 +39,8 @@ var upload = multer({
 
             exec('pngquant ./uploads/'+changedName+' --quality='+range);
 
+            logObj.write(`${getNowTime()} ${req.connection.remoteAddress.substr(7)} 上传 ${file.originalname}`);
+
         },
         fileFilter: function(req, file, cb){
             //过滤图片，非png不保存
@@ -47,7 +49,6 @@ var upload = multer({
             } else {
                 cb(null, false)
             }
-    
         }
     })
 });
@@ -128,6 +129,9 @@ app.post('/getBase',bodyParser.urlencoded({ extended: false }), function(req,res
 });
 
 app.get('/', function (req, res) {
+
+    logObj.write(`${getNowTime()} ${req.connection.remoteAddress.substr(7)} 访问/`);
+
     res.sendFile(path.resolve(__dirname, 'pngquantServer.html'));
 });
 
@@ -167,6 +171,7 @@ rules.hour = [];
 
 for(var i = 22;i<=23;i++){
     rules.hour.push(i);
+    rules.minute = 0;
 }
 
 schedule.scheduleJob(rules, function(){
@@ -184,6 +189,9 @@ schedule.scheduleJob(rules, function(){
     });
 });
 
-
+function getNowTime(){
+    let nowDate = new Date();
+    return `${nowDate.getFullYear()}/${nowDate.getMonth()+1}/${nowDate.getDate()} ${nowDate.getHours()}:${nowDate.getMinutes()}:${nowDate.getSeconds()} `;
+}
 
 

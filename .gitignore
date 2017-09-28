@@ -1,3 +1,4 @@
 pngquant.exe
 node_modules
 uploads
+*.log
