@@ -8,6 +8,7 @@ var exec = require('child_process').exec;
 var ipaddress = getIPAdress();
 var schedule = require('node-schedule');
 var bodyParser = require('body-parser');
+var logObj = require('./logObj');
 
 var upload = multer({
     limits: {
@@ -21,8 +22,10 @@ var upload = multer({
             cb(null, 'uploads/')
         },
         filename: function (req, file, cb) {
-            //设置文件名
 
+            var range = req.param('range') || '100';
+
+            //设置文件名
             var timeStamp = new Date().getTime();
 
             var changedName = timeStamp + '.png',
@@ -34,7 +37,9 @@ var upload = multer({
 
             cb(null, changedName);
 
-            exec('pngquant ./uploads/'+changedName);
+            exec('pngquant ./uploads/'+changedName+' --quality='+range);
+
+            logObj.write(`${getNowTime()} ${req.connection.remoteAddress.substr(7)} 上传 ${file.originalname}`);
 
         },
         fileFilter: function(req, file, cb){
@@ -44,7 +49,6 @@ var upload = multer({
             } else {
                 cb(null, false)
             }
-    
         }
     })
 });
@@ -52,25 +56,40 @@ var upload = multer({
 //静态资源下载
 app.use('/output',express.static(path.resolve(__dirname,'./uploads/')));
 
+
+let arrayUpload = upload.array('upload');
 //上传图片
-app.post('/upload', upload.array('upload'), function(req,res){
+app.post('/upload', function(req,res){
+    
+    arrayUpload(req,res, function(err){
 
-    var fileData = [];
-
-    req.files.map(function(elem){
-        var item = {
-            originalName: elem.originalname,
-            downloadName: elem.downloadName,
-            path: 'http://'+ipaddress+':'+port+'/output/'+elem.downloadName
+        if(err){
+            res.json({
+                code: '1000',
+                msg: err.message,
+                data: []
+            })
+            return;
         }
-        fileData.push(item);
+
+        var fileData = [];
+    
+        req.files.map(function(elem){
+            var item = {
+                originalName: elem.originalname,
+                downloadName: elem.downloadName,
+                path: 'http://'+ipaddress+':'+port+'/output/'+elem.downloadName
+            }
+            fileData.push(item);
+        });
+    
+        res.json({
+            code: '0000',
+            msg: '',
+            data: fileData
+        })
     });
 
-    res.json({
-        code: '0000',
-        msg: '',
-        data: fileData
-    })
 
 });
 
@@ -110,6 +129,9 @@ app.post('/getBase',bodyParser.urlencoded({ extended: false }), function(req,res
 });
 
 app.get('/', function (req, res) {
+
+    logObj.write(`${getNowTime()} ${req.connection.remoteAddress.substr(7)} 访问/`);
+
     res.sendFile(path.resolve(__dirname, 'pngquantServer.html'));
 });
 
@@ -144,12 +166,33 @@ function getIPAdress() {
 
 //设置定时任务
 var rules = new schedule.RecurrenceRule();
-var hoursArr = [12,24];
-rules.hour = hoursArr;
+
+rules.hour = [];
+
+for(var i = 22;i<=23;i++){
+    rules.hour.push(i);
+    rules.minute = 0;
+}
+
 schedule.scheduleJob(rules, function(){
-    exec('cd ./uploads/ && rm -r *');
+    let nowDate = new Date();
+    // console.log(`${nowDate.getFullYear()}/${nowDate.getMonth()+1}/${nowDate.getDate()} ${nowDate.getHours()}:${nowDate.getMinutes()}:${nowDate.getSeconds()} 删除uploads下的图片`)
+    logObj.write(`${getNowTime()} 删除uploads下的图片`);
+    fs.readdir(__dirname+'/uploads', function(err,files){
+        if(!!files && !!files.length){
+            files.map(function(file){
+                var status = fs.statSync(__dirname+'/uploads/'+file)
+                if(!status.isDirectory()){
+                    fs.unlinkSync(__dirname+'/uploads/'+file)
+                }
+            });
+        }
+    });
 });
 
-
+function getNowTime(){
+    let nowDate = new Date();
+    return `${nowDate.getFullYear()}/${nowDate.getMonth()+1}/${nowDate.getDate()} ${nowDate.getHours()}:${nowDate.getMinutes()}:${nowDate.getSeconds()} `;
+}
 
 

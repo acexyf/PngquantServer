@@ -28,8 +28,9 @@
             float: left;
             margin: 10px;
         }
-        .outImg img{
+        .outImg .outImgSource{
             display: block;
+            cursor: pointer;
             width: 100px;
             max-height: 100px;
         }
@@ -69,6 +70,18 @@
         .tab.active{
             display: block
         }
+        .rangeWrap{
+            width: 162px;
+            height: 30px;
+            margin: 0 auto;
+        }
+        .rangeSlide{
+            float: left;
+        }
+        .rangeValue{
+            float: left;
+            line-height: 24px;
+        }
     </style>
 </head>
 <body>
@@ -88,6 +101,10 @@
         </div>
         <div class="tabs">
             <div class="tab active">
+                <div class="rangeWrap clearfix">
+                    <input type="range" name="" id="" class="rangeSlide" value="100">
+                    <span class="rangeValue">100</span>
+                </div>
                 <div class="outImgs">
                         
                 </div>
@@ -102,7 +119,7 @@
 
 
 
-    <script src="//js.40017.cn/cn/h/common/jquery-1.9.1.min.js"></script>
+    <script src="//xieyufei.com/js/jquery.min.js"></script>
     <script>
     
 
@@ -204,8 +221,9 @@
 
 
             function ajaxSendImg(formData){
+                // formData.append('range',$('.rangeSlide').val());
                 $.ajax({
-                    url: '/upload',
+                    url: '/upload?range='+$('.rangeSlide').val(),
                     type: 'post',
                     processData:false,
                     contentType:false,
@@ -217,7 +235,7 @@
                                 _html="";
                             fetchData.map(function(elem){
                                 _html+=`<div class="outImg">
-                                            <img src="${elem.path}" alt="">
+                                            <img class="outImgSource" src="${elem.path}" alt="">
                                             <div class="opt" data-downloadname="${elem.downloadName}">
                                                 <a class="download" href="${elem.path}" name="${elem.originalName}" download="${elem.originalName}">下载</a>
                                                 <a class="getBase" href="javascript:;">转base</a>
@@ -247,11 +265,16 @@
                         if(!!data && data.code == '0000'){
                             $('#results').html(data.data)
                             $('.nav.tobase').trigger('click');
+                        } else {
+                            alert(data.msg);
                         }
                     }
                 })
             });
 
+            $('.outImgs').on('click','.outImgSource',function(){
+                window.open($(this).attr('src'));
+            });
 
             $('.nav').on('click',function(){
                if($(this).hasClass('active')){
@@ -264,7 +287,12 @@
 
             });
 
+            $('.rangeSlide').on('mousemove', function(){
+                let values = $(this).val();
+                $('.rangeValue').html(values);
+            });
 
+            //默认选中转base64
             $('.nav.tobase').trigger('click');
 
             // $.ajax({
